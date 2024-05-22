@@ -1,2 +1,26 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
+
+<script lang="ts">
+  import "milligram/dist/milligram.min.css";
+  import TMSim from "$lib/TM/TMSim.svelte"
+</script>
+
+<h1>TuMaSim</h1>
+
+<form>
+  <fieldset>
+    <pre><code contenteditable=true></code></pre>
+    
+    <label for="initialState">Initial state:</label>
+    <input type="text" placeholder="A" id="initialState" pattern="\w+">
+
+    <label for="acceptingStates">Accepting states:</label>
+    <input type="text" placeholder="B, C, D" id="acceptingStates">
+
+    <button class="button">Load</button>
+</fieldset>
+</form>
+
+<TMSim/>
+
+
+
