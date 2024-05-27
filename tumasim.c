@@ -320,6 +320,9 @@ TMState simulate_machine(const TM *const machine, const char *input,
 
   final_state = *running_machine.current_state;
 
+  print_tape(&running_machine);
+  putchar('\n');
+
   free(tape_buffer);
 
   return final_state;
