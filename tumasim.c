@@ -349,10 +349,16 @@ bool check_accept(TM const *machine, const char *input,
 }
 
 int main(const int argc, const char **argv) {
-  // TM should accept 11*0*1
-  if (argc != 3) {
-    fprintf(stderr, "Usage: %s <code_file> <machine_input>\n", argv[0]);
+  if (argc < 3 || argc > 4) {
+    fprintf(stderr, "Usage: %s <code_file> <machine_input> [flags]\n", argv[0]);
     return EXIT_FAILURE;
+  }
+
+  char* flags = "";
+  if (argc == 4){
+    // TODO: --autorun flag
+    char* flags = argv[3];
+    
   }
 
   char *code = read_file(argv[1]);
