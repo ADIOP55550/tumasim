@@ -24,12 +24,13 @@ fi
 # Read the test file line by line
 while IFS= read -r test_line; do
   # Run the command and capture the output
-  output=$(./tumasim "$code_file" "$test_line")
+  output=$(./tumasim "$code_file" "$test_line" "--autorun")
   
   # Print the test line
-  echo "$test_line"
+  echo ""
+  echo "Testing: " "[$test_line]"
   
   # Print the last two lines of the output
-  echo "$output" | tail -n 2
+  echo "$output"
 done < "$test_file"
 

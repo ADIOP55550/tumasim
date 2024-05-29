@@ -7,12 +7,14 @@
 #include <string.h> // memcpy, strlen, strdup, strtok, strncmp, strchr
 
 bool debug = false;
+bool autorun_enabled = false;
 
-typedef enum { STOP, LEFT, RIGHT } PointerMove;
+typedef enum { NO_MOVE, LEFT, RIGHT, HALT } PointerMove;
 
 const PointerMove L = LEFT;
 const PointerMove R = RIGHT;
-const PointerMove S = STOP;
+const PointerMove N = NO_MOVE;
+const PointerMove H = HALT;
 
 struct Rule {
   char in_value;
@@ -152,8 +154,11 @@ void parse_input(const char *input, TM *machine) {
         Rule rule;
         rule.in_value = rule_line[1];
         rule.out_value = rule_line[4];
-        rule.direction =
-            rule_line[7] == '>' ? R : (rule_line[7] == '<' ? L : S);
+        rule.direction = rule_line[7] == '>'
+                             ? RIGHT
+                             : (rule_line[7] == '<'
+                                    ? LEFT
+                                    : (rule_line[7] == 'S' ? HALT : NO_MOVE));
         rule.target_state = find_state(all_states, rule_line[10]);
 
         rule.in_value = rule.in_value == '_' ? 0 : rule.in_value;
@@ -214,7 +219,7 @@ void print_string_as_int_codes(const char *str) {
 
 void print_tape(const RunningTM *const machine) {
   // TODO make it print multiple words separated with 0s
-  const char empty_cell_symbol = '_';
+  const char empty_cell_symbol = autorun_enabled ? '_' : '_';
   size_t curr_pos = 0;
   size_t printed_chars = 0;
   int pointer_column = -2;
@@ -223,7 +228,7 @@ void print_tape(const RunningTM *const machine) {
   while (curr_pos < machine->tape_buf_len) {
     const char curr_char = machine->tape[curr_pos];
     if (curr_char != 0) {
-      if(first_printed == -1){
+      if (first_printed == -1) {
         first_printed = curr_pos;
       }
       putchar(curr_char);
@@ -234,16 +239,21 @@ void print_tape(const RunningTM *const machine) {
     }
     curr_pos++;
   }
-  
+
   putchar(empty_cell_symbol);
   putchar('\n');
+
+  if (autorun_enabled) {
+    return;
+  }
+
   if (pointer_column == -2) {
     pointer_column = printed_chars + 1;
   }
-  if (first_printed - 1 == (int) machine->pointer_position) {
+  if (first_printed - 1 == (int)machine->pointer_position) {
     pointer_column = -1;
   }
-  for (int i = 0; i < pointer_column ; ++i) {
+  for (int i = 0; i < pointer_column; ++i) {
     putchar(' ');
   }
   putchar('^');
@@ -299,7 +309,7 @@ PointerMove step_machine(RunningTM *const machine) {
 
   if (activated_rule == NULL) {
     // Stop the machine
-    return STOP;
+    return HALT;
   }
 
   return process_rule(machine, activated_rule);
@@ -323,16 +333,20 @@ TMState simulate_machine(const TM *const machine, const char *input,
 
   PointerMove next_move;
   do {
-    print_state(&running_machine);
-    print_tape(&running_machine);
-    getchar();
+    if (!autorun_enabled) {
+      print_state(&running_machine);
+      print_tape(&running_machine);
+      getchar();
+    }
     next_move = step_machine(&running_machine);
-  } while (next_move != STOP);
+  } while (next_move != HALT);
 
   final_state = *running_machine.current_state;
 
   print_tape(&running_machine);
-  putchar('\n');
+  if (!autorun_enabled) {
+    putchar('\n');
+  }
 
   free(tape_buffer);
 
@@ -343,7 +357,11 @@ bool check_accept(TM const *machine, const char *input,
                   const size_t input_length) {
   const TMState final_state = simulate_machine(machine, input, input_length);
 
-  printf("Final state: %c\n", final_state.name);
+  if (autorun_enabled) {
+    printf("%c\n", final_state.name);
+  } else {
+    printf("Final state: %c\n", final_state.name);
+  }
 
   return is_accepting_state(machine, &final_state);
 }
@@ -354,11 +372,11 @@ int main(const int argc, const char **argv) {
     return EXIT_FAILURE;
   }
 
-  char* flags = "";
-  if (argc == 4){
+  const char *flags = "";
+  if (argc == 4) {
     // TODO: --autorun flag
-    char* flags = argv[3];
-    
+    flags = argv[3];
+    autorun_enabled = strcmp(flags, "--autorun") || strcmp(flags, "-a");
   }
 
   char *code = read_file(argv[1]);
@@ -379,7 +397,9 @@ int main(const int argc, const char **argv) {
 
   bool accepted = check_accept(&machine, argv[2], strlen(argv[2]));
 
-  putchar('\n');
+  if (!autorun_enabled) {
+    putchar('\n');
+  }
   printf(accepted ? "ACCEPTED" : "REJECTED");
   putchar('\n');
 
