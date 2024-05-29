@@ -214,26 +214,36 @@ void print_string_as_int_codes(const char *str) {
 
 void print_tape(const RunningTM *const machine) {
   // TODO make it print multiple words separated with 0s
-  size_t pos = 0;
+  const char empty_cell_symbol = '_';
+  size_t curr_pos = 0;
   size_t printed_chars = 0;
-  int pointer_column = -1;
-  while (pos < machine->tape_buf_len) {
-    const char curr_char = machine->tape[pos];
+  int pointer_column = -2;
+  int first_printed = -1;
+  putchar(empty_cell_symbol);
+  while (curr_pos < machine->tape_buf_len) {
+    const char curr_char = machine->tape[curr_pos];
     if (curr_char != 0) {
+      if(first_printed == -1){
+        first_printed = curr_pos;
+      }
       putchar(curr_char);
       printed_chars++;
-      if (machine->pointer_position == pos) {
+      if (machine->pointer_position == curr_pos) {
         pointer_column = printed_chars;
       }
     }
-    pos++;
+    curr_pos++;
   }
-
+  
+  putchar(empty_cell_symbol);
   putchar('\n');
-  if (pointer_column == -1) {
+  if (pointer_column == -2) {
     pointer_column = printed_chars + 1;
   }
-  for (int i = 0; i < pointer_column - 1; ++i) {
+  if (first_printed - 1 == (int) machine->pointer_position) {
+    pointer_column = -1;
+  }
+  for (int i = 0; i < pointer_column ; ++i) {
     putchar(' ');
   }
   putchar('^');
