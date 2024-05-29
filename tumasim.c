@@ -3,7 +3,7 @@
 #include <stdbool.h> // bool, true, false
 #include <stddef.h>
 #include <stdio.h>  // printf, fseek, fopen, fclose, ftell, fread
-#include <stdlib.h> // malloc, free, perror,
+#include <stdlib.h> // calloc, malloc, free, perror,
 #include <string.h> // memcpy, strlen, strdup, strtok, strncmp, strchr
 
 bool debug = false;
@@ -308,9 +308,10 @@ PointerMove step_machine(RunningTM *const machine) {
 TMState simulate_machine(const TM *const machine, const char *input,
                          size_t input_length) {
 
-  char *const tape_buffer = malloc(sizeof(char) * 50000);
-
+  const size_t tape_size = 50000;
   const int tape_initial_offset = 10000;
+
+  char *const tape_buffer = calloc(tape_size, sizeof(char));
 
   TMState final_state;
 
